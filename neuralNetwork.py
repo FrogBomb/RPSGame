@@ -272,7 +272,7 @@ class NeuralNetwork:
         #Train returns the target input for the previous layer. 
         self._layers.reverse()
         for nl in self._layers:
-            reinforcement = nl.train(responses.pop(), reinforcement)
+            reinforcement = nl.train(responses.pop(), reinforcement, learnRate)
             
         self._layers.reverse()
             
