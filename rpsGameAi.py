@@ -32,6 +32,7 @@ class RPSNeuronLayer(NL):
         self._sep = 1.0
         self._learnRate = learnRate
         self._featureNum = len(self._symbols)**2
+        self._edgeSpaceAprox = min(self._learnRate*self._featureNum*stability, .45)
         featureNum = self._featureNum
         super().__init__(bufferSize*featureNum + 1, len(self._symbols),
                           activationFunc=sigmoid, sampler = zeros)
