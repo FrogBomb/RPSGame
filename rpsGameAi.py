@@ -34,7 +34,9 @@ class RPSNeuralNetwork(NN):
         self._edgeSpaceApprox = min(self._learnRate*bufferSize*stability, .45)
         featureNum = self._featureNum
         super().__init__([bufferSize*featureNum + 1, len(self._symbols)],
-                          activationFuncs=sigmoid, samplers = zeros)
+                          activationFuncs=sigmoid,\
+                          samplers = zeros\
+                          )
         #Buffer :: [[[(r, r), (r, p), (r, s), (p, r), ... , (s, p), (s, s)]],
         #           size = bufferSize
         #The tail element of the buffer is the most recent.
