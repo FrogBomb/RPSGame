@@ -1,6 +1,6 @@
 from rpsGameAi import *
 def main():
-    g = RPSCustomVsGame(RPSPlayer_2PAiWithNN, RPSNeuronLayer)
+    g = RPSCustomVsGame(RPSPlayer_2PAiWithNN, RPSNeuralNetwork)
     g.loop()
     print("player score:", g.players[0].wins)
     print("AI score:", g.players[1].wins)

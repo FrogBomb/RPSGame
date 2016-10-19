@@ -16,16 +16,14 @@ import random
 def zeros(**kwargs):
     return np.zeros(kwargs['size'])
 
-#I left this class mostly empty since I don't know what kind of network
-#you want to try to build. I put in a bunch of comments to try to help.
-class RPSNeuronLayer(NN):
+class RPSNeuralNetwork(NN):
     #I'll use this list parameter to help translate
     #into "neuron language" in the _translateThrow method
     _symbols = ['r', 'p', 's']
 
-    def __init__(self, bufferSize=1, learnRate = .03, stability = 1.2):
+    def __init__(self, bufferSize=5, learnRate = .03, stability = 1.2):
 
-        #Build the neuron layer. The output will
+        #The brain of the AI. The output will
         #attempt to predict the player's move, and the
         #AI's choice (accessed via predict) will be randomly decided based on
         #the network response.
@@ -96,8 +94,8 @@ class RPSNeuronLayer(NN):
 
     @staticmethod
     def _throwsToIndex(lastAiThrow, lastOpThrow):
-        return 3*RPSNeuronLayer._symbols.index(lastAiThrow)\
-                 + RPSNeuronLayer._symbols.index(lastOpThrow)
+        return 3*RPSNeuralNetwork._symbols.index(lastAiThrow)\
+                 + RPSNeuralNetwork._symbols.index(lastOpThrow)
 
     def _appendBuffer(self, lastAiThrow, lastOpThrow):
         del self._buffer[0]
