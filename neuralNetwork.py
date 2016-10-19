@@ -262,12 +262,12 @@ class NeuralNetwork:
                 
         """
         thisArr = inArr
-        responses = []
-        ##Go through all the layers except the last layer.
+        responses = [inArr]
+        ##Go through all the layers (except the last)
         for nl in self._layers[:-1]:
             thisArr = nl(thisArr)
             responses.append(thisArr)
-        
+
         #Then, train the layers in reverse order.
         #Train returns the target input for the previous layer. 
         self._layers.reverse()

@@ -10,7 +10,7 @@ into an ai for the rps game.
 
 from rpsGame import RPSPlayer, RPSCustomVsGame
 import numpy as np
-from neuralNetwork import NeuronLayer as NL, sigmoid
+from neuralNetwork import NeuralNetwork as NN, sigmoid
 import random
 
 def zeros(**kwargs):
@@ -18,12 +18,12 @@ def zeros(**kwargs):
 
 #I left this class mostly empty since I don't know what kind of network
 #you want to try to build. I put in a bunch of comments to try to help.
-class RPSNeuronLayer(NL):
+class RPSNeuronLayer(NN):
     #I'll use this list parameter to help translate
     #into "neuron language" in the _translateThrow method
     _symbols = ['r', 'p', 's']
 
-    def __init__(self, bufferSize=5, learnRate = .03, stability = 1.2):
+    def __init__(self, bufferSize=1, learnRate = .03, stability = 1.2):
 
         #Build the neuron layer. The output will
         #attempt to predict the player's move, and the
@@ -32,10 +32,11 @@ class RPSNeuronLayer(NL):
         self._sep = 1.0
         self._learnRate = learnRate
         self._featureNum = len(self._symbols)**2
-        self._edgeSpaceApprox = min(self._learnRate*self._featureNum*stability, .45)
+#        self._edgeSpaceApprox = .08
+        self._edgeSpaceApprox = min(self._learnRate*bufferSize*stability, .45)
         featureNum = self._featureNum
-        super().__init__(bufferSize*featureNum + 1, len(self._symbols),
-                          activationFunc=sigmoid, sampler = zeros)
+        super().__init__([bufferSize*featureNum + 1, len(self._symbols)],
+                          activationFuncs=sigmoid, samplers = zeros)
         #Buffer :: [[[(r, r), (r, p), (r, s), (p, r), ... , (s, p), (s, s)]],
         #           size = bufferSize
         #The tail element of the buffer is the most recent.
@@ -100,9 +101,10 @@ class RPSNeuronLayer(NL):
 
     def _appendBuffer(self, lastAiThrow, lastOpThrow):
         del self._buffer[0]
-        outcome = [-self._sep]*self._featureNum
+        outcome = [0.0]*self._featureNum
         outcome[self._throwsToIndex(lastAiThrow, lastOpThrow)] = self._sep
         self._buffer.append(outcome);
+        
 
 
 
