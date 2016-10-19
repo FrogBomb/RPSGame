@@ -13,6 +13,8 @@ import numpy as np
 from neuralNetwork import NeuronLayer as NL, sigmoid
 import random
 
+def zeros(**kwargs):
+    return np.zeros(kwargs['size'])
 
 #I left this class mostly empty since I don't know what kind of network
 #you want to try to build. I put in a bunch of comments to try to help.
@@ -21,42 +23,60 @@ class RPSNeuronLayer(NL):
     #into "neuron language" in the _translateThrow method
     _symbols = ['r', 'p', 's']
 
-    def __init__(self, bufferSize=7):
+    def __init__(self, bufferSize=5, learnRate = .03, stability = 1.2):
         
         #Build the neuron layer. The output will
         #attempt to predict the player's move, and the
         #AI's choice (accessed via predict) will be randomly decided based on
         #the network response.
-        super().__init__(bufferSize*4, len(self._symbols), activationFunc=sigmoid)
-        #Buffer :: [[win, r, p, s]], size = bufferSize
+        self._sep = 1.0
+        self._learnRate = learnRate
+        self._featureNum = len(self._symbols)**2
+        self._edgeSpaceAprox = self._learnRate*self._featureNum*stability
+        featureNum = self._featureNum
+        super().__init__(bufferSize*featureNum + 1, len(self._symbols), 
+                          activationFunc=sigmoid, sampler = zeros)
+        #Buffer :: [[[(r, r), (r, p), (r, s), (p, r), ... , (s, p), (s, s)]],
+        #           size = bufferSize
         #The tail element of the buffer is the most recent.
-        self._buffer = [[0.1]+[0.1]*len(self._symbols)]*bufferSize
+        self._buffer = [[0.0]*featureNum]*bufferSize
         return
         
-    def feed(self, lastOpThrow, didWin):
+    def __call__(self):
+        return super().__call__(self._NNIn())
+        
+    def train(self, *args, **kwargs):
+        super().train(self._NNIn(), *args, **kwargs)
+        
+
+        
+    def feed(self, lastAiThrow, lastOpThrow):
         #Basically, if either of
         #the inputs are none, do nothing.
         #This is just to keep going
         #in case something breaks for some reason.
         if(lastOpThrow == None):
             return
-        if(didWin == None):
+        if(lastAiThrow == None):
             return
         
         #Train based on the results.
-        target = self._translateThrow(lastOpThrow)
-        self.train(np.array(self._buffer).flatten(), target, 0.03)
+        edgeSpaceAprox = self._edgeSpaceAprox
+        target = [edgeSpaceAprox]*len(self._symbols)
+        target[self._symbols.index(lastOpThrow)] = 1.0 - edgeSpaceAprox
+        self.train(target, self._learnRate)
         
         #Push the new outcome to the end of the buffer.
-        self._appendBuffer(lastOpThrow, didWin)
+        self._appendBuffer(lastAiThrow, lastOpThrow)
         
-        
+
     def predict(self):
 
         #we get a random number in [0, sum(raw_nl_out)), and subtract from that number
         #with the outputs until it is less than or equal to 0, and we
         #take that symbol as the prediction for the opponent's play.
-        raw_nl_out = self(np.array(self._buffer).flatten())
+        raw_nl_out = self()
+        raw_nl_out -= min(np.min(raw_nl_out), self._edgeSpaceAprox)
 #        print(raw_nl_out, self._symbols)
         roll = random.random()*sum(raw_nl_out)
         
@@ -70,18 +90,20 @@ class RPSNeuronLayer(NL):
         
         return self._symbols[(op_play_guess + 1)%len(self._symbols)]
     
-    def _translateThrow(self, throw):
-        #  throw -> array
-        #  'r' -> [.99, .01, .01]
-        #  'p' -> [.01, .99, .01]
-        #  's' -> [.01, .01, .99]
-        return [.9 if _s == throw else 0.1 for _s in self._symbols]
-
-    def _appendBuffer(self, throw, didWin):
-        self._buffer.append([.9 if didWin else .1] +\
-                            self._translateThrow(throw))
+    def _NNIn(self):
+        return np.append(1.0, np.array(self._buffer).flatten())
+        
+    @staticmethod
+    def _throwsToIndex(lastAiThrow, lastOpThrow):
+        return 3*RPSNeuronLayer._symbols.index(lastAiThrow)\
+                 + RPSNeuronLayer._symbols.index(lastOpThrow)
+                 
+    def _appendBuffer(self, lastAiThrow, lastOpThrow):
         del self._buffer[0]
-          
+        outcome = [-self._sep]*self._featureNum
+        outcome[self._throwsToIndex(lastAiThrow, lastOpThrow)] = self._sep
+        self._buffer.append(outcome);
+        
         
         
 class RPSPlayer_2PAiWithNN(RPSPlayer):
@@ -105,7 +127,7 @@ class RPSPlayer_2PAiWithNN(RPSPlayer):
         #here, and to 
         self._nn = neuralNetwork()
         self._lastOpThrow = None
-        self._didWinLast = None
+        self._lastAiThrow = None
         
     def giveThrows(self, throwList):
         
@@ -131,8 +153,9 @@ class RPSPlayer_2PAiWithNN(RPSPlayer):
         self._didWinLast = not not winNumber
     
     def getThrow(self):
-        self._nn.feed(self._lastOpThrow, self._didWinLast)
-        return self._nn.predict()
+        self._nn.feed(self._lastAiThrow, self._lastOpThrow)
+        self._lastAiThrow = self._nn.predict()
+        return self._lastAiThrow
         
 def main():
     g = RPSCustomVsGame(RPSPlayer_2PAiWithNN, RPSNeuronLayer)
