@@ -32,7 +32,7 @@ class RPSNeuronLayer(NL):
         self._sep = 1.0
         self._learnRate = learnRate
         self._featureNum = len(self._symbols)**2
-        self._edgeSpaceAprox = min(self._learnRate*self._featureNum*stability, .45)
+        self._edgeSpaceApprox = min(self._learnRate*self._featureNum*stability, .45)
         featureNum = self._featureNum
         super().__init__(bufferSize*featureNum + 1, len(self._symbols),
                           activationFunc=sigmoid, sampler = zeros)
@@ -61,9 +61,9 @@ class RPSNeuronLayer(NL):
             return
 
         #Train based on the results.
-        edgeSpaceAprox = self._edgeSpaceAprox
-        target = [edgeSpaceAprox]*len(self._symbols)
-        target[self._symbols.index(lastOpThrow)] = 1.0 - edgeSpaceAprox
+        edgeSpaceApprox = self._edgeSpaceApprox
+        target = [edgeSpaceApprox]*len(self._symbols)
+        target[self._symbols.index(lastOpThrow)] = 1.0 - edgeSpaceApprox
         self.train(target, self._learnRate)
 
         #Push the new outcome to the end of the buffer.
@@ -76,7 +76,7 @@ class RPSNeuronLayer(NL):
         #with the outputs until it is less than or equal to 0, and we
         #take that symbol as the prediction for the opponent's play.
         raw_nl_out = self()
-        raw_nl_out -= min(np.min(raw_nl_out), self._edgeSpaceAprox)
+        raw_nl_out -= min(np.min(raw_nl_out), self._edgeSpaceApprox)
 #        print(raw_nl_out, self._symbols)
         roll = random.random()*sum(raw_nl_out)
 
