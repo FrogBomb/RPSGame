@@ -21,7 +21,7 @@ class RPSNeuralNetwork(NN):
     #into "neuron language" in the _translateThrow method
     _symbols = ['r', 'p', 's']
 
-    def __init__(self, bufferSize=5, learnRate = .03, stability = 1.2):
+    def __init__(self, bufferSize=3, learnRate = .03, stability = 1.2):
 
         #The brain of the AI. The output will
         #attempt to predict the player's move, and the
